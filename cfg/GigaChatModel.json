@@ -1,0 +1,6 @@
+{
+  "Model": "GigaChat:latest",
+  "Temperature": 0.7,
+  "TopP": 0.9,
+  "MaxTokens": 1024
+}
