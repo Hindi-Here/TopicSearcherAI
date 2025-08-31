@@ -6,6 +6,7 @@ using Spire.Doc;
 using System.Text.RegularExpressions;
 using System.Security.Cryptography.X509Certificates;
 using ThemeBuilder.model;
+using System.Dynamic;
 
 namespace ThemeBuilder.command
 {
@@ -51,6 +52,8 @@ namespace ThemeBuilder.command
                                       "   --temperature accessor <value> | установить/получить температуру ответа\n" +
                                       "   --topP accessor <value> | установить/получить topP параметр\n" +
                                       "   --maxTokens accessor <value> | установить/получить количество токенов\n\n" +
+                                      "   --prompt accessor <value> | установить/получить промпт для поиска\n\n" +
+                                      "   --promptL accessor <value> | установить/получить промпт для формирования списка\n\n" +
                                       "   --doc.format accessor <value> | установить/получить формат документа\n" +
                                       "   --doc.margin accessor <left; top; right; bottom> | установить/получить отступы от краев листа\n" +
                                       "   --doc.aligment accessor <value> | установить/получить формат выравнивания\n" +
@@ -110,7 +113,7 @@ namespace ThemeBuilder.command
             }
 
             theme = value;
-            string? decomposition = await ResponseGigaChat($"Тема исследования: {theme}\n{PromptManager.ThemeDecomposition}");
+            string? decomposition = await ResponseGigaChat($"Тема исследования: {theme}\n{gigaModel.Get("PromptDecomposition")}");
             list = ToList(decomposition!);
 
             ColorizeText.MessagePrint("[OK] Тема добавлена, а список сформирован\n", ColorizeText.colors["Success"]);
@@ -151,7 +154,8 @@ namespace ThemeBuilder.command
             }
 
             string content = await GetSearchContent();
-            Builder(content);
+            DocumentBuilder.Build(documentModel.GetModel(), content, theme);
+            ColorizeText.MessagePrint($"[OK] Отчет был сохранен на рабочий стол! [{DateTime.Now}]\n", ColorizeText.colors["Success"]);
         }
 
         public static void Default()
@@ -249,6 +253,14 @@ namespace ThemeBuilder.command
             return isValid;
         }
 
+        public static void GetPromptDecomposition() => GetPropetry(gigaModel, "PromptDecomposition");
+
+        public static void SetPromptDecomposition(string value) => SetPropetry(gigaModel, "PromptDecomposition", value);
+
+        public static void GetPromptSearcher() => GetPropetry(gigaModel, "PromptSearcher");
+
+        public static void SetPromptSearcher(string value) => SetPropetry(gigaModel, "PromptSearcher", value);
+
         private static void NotSupportFormat() => ColorizeText.MessagePrint($"[ERROR] Этот параметр не поддерживается\n", ColorizeText.colors["Warning"]);
 
         public static void GetFormat() => GetPropetry(documentModel, "Format");
@@ -308,7 +320,7 @@ namespace ThemeBuilder.command
                 return null;
             }
 
-            float[] margins = { left, top, right, bottom };
+            float[] margins = [left, top, right, bottom];
             if (margins.Any(m => m < 0 || m > 5))
             {
                 ColorizeText.MessagePrint("[ERROR] Все значения отступов должны быть в диапазоне от 0 до 5\n", ColorizeText.colors["Warning"]);
@@ -408,7 +420,7 @@ namespace ThemeBuilder.command
                 if (!L.StartsWith('*'))
                     temp.Append(L + '\n');
 
-                temp.Append(await ResponseGigaChat($"Тема: {L}\n{PromptManager.ThemeSearch}") + '\n');
+                temp.Append(await ResponseGigaChat($"Тема: {L}\n{gigaModel.Get("PromptSearcher")}") + '\n');
                 ColorizeText.MessagePrint($"[OK] Тема \"{L}\" была исследована\n", ColorizeText.colors["Success"]);
             }
 
@@ -447,19 +459,6 @@ namespace ThemeBuilder.command
                                  .Replace(">", "»");
 
             return removeSym;
-        }
-
-        private static void Builder(string content)
-        {
-            Document doc = DocumentModel.Builder(documentModel.GetModel(), content);
-
-            string desktopFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string file = Path.Combine(desktopFolder, $"{theme}.docx");
-
-            doc.SaveToFile(file, (FileFormat)documentModel.Get("Format"));
-            doc.Close();
-
-            ColorizeText.MessagePrint($"[OK] Отчет был сохранен на рабочий стол! [{DateTime.Now}]\n", ColorizeText.colors["Success"]);
         }
 
     }

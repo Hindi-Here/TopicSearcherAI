@@ -3,28 +3,28 @@ using ThemeBuilder.command;
 
 namespace ThemeBuilder
 {
-    public static class Program
+    public static partial class Program
     {
+        [GeneratedRegex(@"^(--[\w.]+)(?:\s+(set|get))?(?:\s+<([^>]+)>)?$")]
+        private static partial Regex CommandParse();
 
-        static async Task Main()
+        private static async Task Main()
         {
-            await CommandHandler.DownloadCertificate();
-            await CommandHandler.SendRequest();
+            await Start();
+            IntroduceMessage();
 
-            ColorizeText.ColorizeOnReleaseConsole();
-            string input = string.Empty;
-
-            WelcomeMessage();
-
-            while (input != "Q")
+            while (true)
             {
                 ColorizeText.MessagePrint(">> ", ColorizeText.colors["System"]);
-                input = Console.ReadLine()!;
+                string input = Console.ReadLine()!.Trim();
 
-                if (input == "Q")
+                if (input.Equals("q", StringComparison.OrdinalIgnoreCase))
+                {
                     Environment.Exit(0);
+                    break;
+                }
 
-                var match = Regex.Match(input.Trim(), @"^(--[\w.]+)(?:\s+(set|get))?(?:\s+<([^>]+)>)?$");
+                var match = CommandParse().Match(input);
                 if (!match.Success)
                 {
                     UncorrectMessage();
@@ -75,7 +75,15 @@ namespace ThemeBuilder
             }
         }
 
-        private static void WelcomeMessage()
+        private static async Task Start()
+        {
+            ColorizeText.ColorizeOnReleaseConsole();
+
+            await CommandHandler.DownloadCertificate();
+            await CommandHandler.SendRequest();
+        }
+
+        private static void IntroduceMessage()
         {
             ColorizeText.MessagePrint("[SYS] Программа для генерации отчетов по учебной практике 2024/2025\n" +
                                       "[SYS] Отчет сохраняются в виде Word файла \"{theme}.doc\" на рабочем столе\n" +
@@ -91,4 +99,5 @@ namespace ThemeBuilder
         }
 
     }
+
 }

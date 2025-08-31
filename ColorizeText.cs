@@ -2,7 +2,7 @@
 
 namespace ThemeBuilder
 {
-    internal static class ColorizeText
+    internal static partial class ColorizeText
     {
         const int STD_OUTPUT_HANDLE = -11;
         const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
@@ -14,28 +14,25 @@ namespace ThemeBuilder
             { "System", "#ffffff"},
         };
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern IntPtr GetStdHandle(int nStdHandle);
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        private static partial IntPtr GetStdHandle(int nStdHandle);
 
-        [DllImport("kernel32.dll")]
-        static extern bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
+        [LibraryImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool GetConsoleMode(IntPtr hConsoleHandle, out uint lpMode);
 
-        [DllImport("kernel32.dll")]
-        static extern bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
+        [LibraryImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetConsoleMode(IntPtr hConsoleHandle, uint dwMode);
 
         public static void ColorizeOnReleaseConsole()
         {
             var iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
             if (!GetConsoleMode(iStdOut, out uint outConsoleMode))
-            {
-                Console.WriteLine("Не удалось получить режим консоли");
                 return;
-            }
+            
             outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            if (!SetConsoleMode(iStdOut, outConsoleMode))
-            {
-                Console.WriteLine("Не удалось установить режим консоли");
-            }
+            SetConsoleMode(iStdOut, outConsoleMode);
         }
 
         public static void MessagePrint(string text, string hex)

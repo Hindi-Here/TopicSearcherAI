@@ -1,5 +1,5 @@
-﻿using View = (string command, string? type);
-using static ThemeBuilder.command.CommandHandler;
+﻿using static ThemeBuilder.command.CommandHandler;
+using View = (string command, string? type);
 
 namespace ThemeBuilder.command
 {
@@ -28,6 +28,8 @@ namespace ThemeBuilder.command
             { ("--temperature", G), GetTemperature },
             { ("--topP", G), GetTopP },
             { ("--maxTokens", G), GetMaxTokens },
+            { ("--promptL", G), GetPromptDecomposition },
+            { ("--prompt", G), GetPromptSearcher },
 
             { ("--doc.format", G), GetFormat },
             { ("--doc.margin", G), GetMargin },
@@ -48,6 +50,8 @@ namespace ThemeBuilder.command
             { ("--maxTokens", S), SetMaxTokens },
             { ("--temperature", S), SetTemperature },
             { ("--topP", S), SetTopP },
+            { ("--promptL", S), SetPromptDecomposition },
+            { ("--prompt", S), SetPromptSearcher },
 
             { ("--doc.format", S), SetFormat },
             { ("--doc.margin", S), SetMargin },

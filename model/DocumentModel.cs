@@ -4,7 +4,7 @@ using Spire.Doc.Fields;
 
 namespace ThemeBuilder.model
 {
-    internal class DocumentModel
+    internal class DocumentModel : IDefault<DocumentModel>
     {
         public FileFormat Format { get; set; }
         public DocumentMargins? Margin { get; set; }
@@ -34,31 +34,6 @@ namespace ThemeBuilder.model
             };
         }
 
-        public static Document Builder(DocumentModel model, string content)
-        {
-            Document doc = new();
-            Section section = doc.AddSection();
-
-            DocumentMargins? margins = model.Margin;
-            section.PageSetup.Margins.Left = ToPoint(margins!.Left);
-            section.PageSetup.Margins.Right = ToPoint(margins.Right);
-            section.PageSetup.Margins.Top = ToPoint(margins.Top);
-            section.PageSetup.Margins.Bottom = ToPoint(margins.Bottom);
-
-            Paragraph paragraph = section.AddParagraph();
-            paragraph.Format.HorizontalAlignment = model.Aligment;
-            paragraph.Format.FirstLineIndent = ToPoint(model.FirstLine);
-            paragraph.Format.LineSpacing = model.LineSpacing * 12f;
-
-            TextRange text = paragraph.AppendText(content);
-            text.CharacterFormat.FontName = model.FontFamily;
-            text.CharacterFormat.FontSize = model.FontSize;
-
-            return doc;
-        }
-
-        private static float ToPoint(float centimer) => centimer * 28.3464567f;
-
         public override string ToString()
         {
             return $"   Формат документа: {Format}\n" +
@@ -79,5 +54,37 @@ namespace ThemeBuilder.model
         public float Bottom { get; set; }
 
         public override string ToString() => $"{Left}; {Top}; {Right}; {Bottom}";
+    }
+
+    internal static class DocumentBuilder
+    {
+        public static void Build(DocumentModel model, string content, string theme)
+        {
+            Document doc = new();
+            Section section = doc.AddSection();
+
+            DocumentMargins? margins = model.Margin;
+            section.PageSetup.Margins.Left = ToPoint(margins!.Left);
+            section.PageSetup.Margins.Right = ToPoint(margins.Right);
+            section.PageSetup.Margins.Top = ToPoint(margins.Top);
+            section.PageSetup.Margins.Bottom = ToPoint(margins.Bottom);
+
+            Paragraph paragraph = section.AddParagraph();
+            paragraph.Format.HorizontalAlignment = model.Aligment;
+            paragraph.Format.FirstLineIndent = ToPoint(model.FirstLine);
+            paragraph.Format.LineSpacing = model.LineSpacing * 12f;
+
+            TextRange text = paragraph.AppendText(content);
+            text.CharacterFormat.FontName = model.FontFamily;
+            text.CharacterFormat.FontSize = model.FontSize;
+
+            string desktopFolder = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string file = Path.Combine(desktopFolder, $"{theme}.docx");
+
+            doc.SaveToFile(file, model.Format);
+            doc.Close();
+        }
+
+        private static float ToPoint(float centimer) => centimer * 28.3464567f;
     }
 }

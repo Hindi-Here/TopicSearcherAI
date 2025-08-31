@@ -45,14 +45,8 @@ namespace ThemeBuilder.model
 
         public void Default()
         {
-            string type = typeof(T).Name;
-
-            model = type switch
-            {
-                nameof(GigaChatModel) => (T)(object)GigaChatModel.SetDefault(),
-                nameof(DocumentModel) => (T)(object)DocumentModel.SetDefault(),
-                _ => throw new NotImplementedException(),
-            };
+            Type type = typeof(T);
+            model = (T)type.GetMethod("SetDefault")!.Invoke(null, null)!;
 
             Save();
         }
