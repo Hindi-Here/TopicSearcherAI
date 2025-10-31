@@ -3,10 +3,9 @@ using GigaChatAdapter.Auth;
 using GigaChatAdapter;
 using Spire.Doc.Documents;
 using Spire.Doc;
-using System.Text.RegularExpressions;
 using System.Security.Cryptography.X509Certificates;
 using ThemeBuilder.model;
-using System.Dynamic;
+using ThemeBuilder.subsidary;
 
 namespace ThemeBuilder.command
 {
@@ -51,8 +50,8 @@ namespace ThemeBuilder.command
                                       "   --model accessor <value> | установить/получить AI модель\n" +
                                       "   --temperature accessor <value> | установить/получить температуру ответа\n" +
                                       "   --topP accessor <value> | установить/получить topP параметр\n" +
-                                      "   --maxTokens accessor <value> | установить/получить количество токенов\n\n" +
-                                      "   --prompt accessor <value> | установить/получить промпт для поиска\n\n" +
+                                      "   --maxTokens accessor <value> | установить/получить количество токенов\n" +
+                                      "   --prompt accessor <value> | установить/получить промпт для поиска\n" +
                                       "   --promptL accessor <value> | установить/получить промпт для формирования списка\n\n" +
                                       "   --doc.format accessor <value> | установить/получить формат документа\n" +
                                       "   --doc.margin accessor <left; top; right; bottom> | установить/получить отступы от краев листа\n" +
@@ -60,7 +59,8 @@ namespace ThemeBuilder.command
                                       "   --doc.firstLine accessor <value> | установить/получить отступ первой строки\n" +
                                       "   --doc.spacing accessor <value> | установить/получить межстрочный интервал\n" +
                                       "   --doc.family accessor <value> | установить/получить шрифт документа\n" +
-                                      "   --doc.size accessor <value> | установить/получить размер шрифта\n", ColorizeText.colors["System"]);
+                                      "   --doc.size accessor <value> | установить/получить размер шрифта\n",
+                                      ColorizeText.colors["System"]);
         }
 
         public static void GetDetailList()
@@ -424,8 +424,7 @@ namespace ThemeBuilder.command
                 ColorizeText.MessagePrint($"[OK] Тема \"{L}\" была исследована\n", ColorizeText.colors["Success"]);
             }
 
-            string content = RemoveSpaceParagraphs(temp.ToString());
-            content = RemoveMarkdown(content);
+            string content = RemoveMarkdown(temp.ToString());
             return content;
         }
 
@@ -438,25 +437,15 @@ namespace ThemeBuilder.command
 
         }
 
-        private static string RemoveSpaceParagraphs(string content)
-        {
-            return string.Join("\n", content.Split(separator, StringSplitOptions.RemoveEmptyEntries)
-                                            .Select(line => line.Trim()));
-        }
-
         private static string RemoveMarkdown(string content)
         {
             var lines = content.Split(separator, StringSplitOptions.RemoveEmptyEntries)
-                               .Where(line => !Regex.IsMatch(line.TrimStart(), @"^#{1,}\s?") &&
-                                              !Regex.IsMatch(line.TrimStart(), @"^\*{1,}\s?"))
+                               .Where(line => !Regular.RemoveLineSpace().IsMatch(line.TrimStart()))
                                .Select(line => line.Trim());
 
             string removeSym = string.Join("\n", lines);
 
-            removeSym = Regex.Replace(removeSym, @"#{1,}", "");
-            removeSym = Regex.Replace(removeSym, @"\*{1,}", "");
-            removeSym = removeSym.Replace("<", "«")
-                                 .Replace(">", "»");
+            removeSym = Regular.RemoveMarkdownSymbols().Replace(removeSym, "");
 
             return removeSym;
         }

@@ -1,13 +1,10 @@
-﻿using System.Text.RegularExpressions;
-using ThemeBuilder.command;
+﻿using ThemeBuilder.command;
+using ThemeBuilder.subsidary;
 
 namespace ThemeBuilder
 {
     public static partial class Program
     {
-        [GeneratedRegex(@"^(--[\w.]+)(?:\s+(set|get))?(?:\s+<([^>]+)>)?$")]
-        private static partial Regex CommandParse();
-
         private static async Task Main()
         {
             await Start();
@@ -24,7 +21,7 @@ namespace ThemeBuilder
                     break;
                 }
 
-                var match = CommandParse().Match(input);
+                var match = Regular.CommandParse().Match(input);
                 if (!match.Success)
                 {
                     UncorrectMessage();
